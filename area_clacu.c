@@ -5,6 +5,7 @@ For area of cirle formula is = 3.14 * r * r
 For area of square formula is = a * a
 For area of rectangle formula is = l * b
 For area of triangle formula is = 0.5 * b * h
+hii
 */
 int main() {
     int choice;
