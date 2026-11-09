@@ -8,7 +8,7 @@ Formula to check leap year is:
 int main()
 {
     int year;
-    
+    while(1){
         printf("enter a year to check whether it is leap year orhhh not: \n");
         scanf("%d", &year);
 
@@ -20,6 +20,6 @@ int main()
         {
             printf("%d is not a leap year\n", year);
         }
-    
+    }
     return 2;
 }
