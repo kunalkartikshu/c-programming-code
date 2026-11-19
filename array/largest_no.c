@@ -1,12 +1,25 @@
+/*In this programme, we will find the largest number in an array*/
+
 #include <stdio.h>
-int main() {
-    int arr[4]={4,3,15,5};
-    int largest=arr[0];
-    for(int i=0;i<=3;i++){
-        if(arr[i]>largest){
-            largest=arr[i];
+
+int main()
+{
+    int size;
+    printf("Enter the size of array: \n");
+    scanf("%d",&size);
+    int arr[size];
+    
+    for(int i=0; i<size;i++){
+        printf("Enter the value of %d index\n",i);
+        scanf("%d",&arr[i]);
+    }
+    int gre = arr[0];
+    for(int i=0; i<size;i++){
+        if(gre<arr[i]){
+            gre = arr[i];
         }
     }
-    printf("The largest number is: %d", largest);
+    printf("the greatst no. is : %d\n",gre);
 
+    return 0;
 }
