@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanket</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --primary: #0284c7;
+            --safe: #16a34a;
+            --warning: #ca8a04;
+            --danger: #dc2626;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2A9D8F;
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #ffffff;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-logo {
+            width: 36px;
+            height: 36px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-main);
+            padding: 5px;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: #ffffff;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            padding-top: 60px;
+        }
+
+        .drawer.active {
+            right: 0;
+        }
+
+        .drawer .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .drawer a {
+            padding: 15px 25px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 600;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.2s;
+        }
+
+        .drawer a:hover {
+            background-color: #f8fafc;
+            color: var(--primary);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            z-index: 500;
+        }
+        .overlay.active {
+            display: block;
+        }
+
+        main {
+            flex: 1;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: #ffebbb;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .location-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+        .location-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        #map {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+            z-index: 1;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+        }
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            background: #94a3b8;
+            margin-top: 10px;
+        }
+
+        .legend-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .legend-box {
+            flex: 1;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+        }
+
+        .legend-safe { background-color: var(--safe); }
+        .legend-warning { background-color: var(--warning); }
+        .legend-danger { background-color: var(--danger); }
+
+        .sos-card {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+        }
+
+        .sos-btn {
+            display: block;
+            width: 100%;
+            background-color: var(--danger);
+            color: white;
+            text-align: center;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+            box-sizing: border-box;
+            transition: background-color 0.2s;
+        }
+
+        .sos-btn:hover {
+            background-color: #b91c1c;
+        }
+
+        .supply-card {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+
+        .supply-btn {
+            display: block;
+            width: 100%;
+            background-color: var(--safe);
+            color: white;
+            text-align: center;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(22, 163, 74, 0.2);
+            box-sizing: border-box;
+            transition: background-color 0.2s;
+        }
+
+        .supply-btn:hover {
+            background-color: #15803d;
+        }
+
+        .footer-time {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-container">
+            <img src="icon.png" alt="Logo" class="app-logo">
+            <div class="logo-text">SANKET</div>
+        </div>
+        <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+    </header>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+    <div class="drawer" id="drawer">
+        <button class="close-btn" onclick="toggleMenu()">&times;</button>
+        <a href="#" onclick="toggleMenu()">📰 News</a>
+        <a href="#" onclick="toggleMenu()">🚨 Alerts</a>
+    </div>
+
+    <main>
+        <!-- Map and Location Card -->
+        <div class="card">
+            <div class="location-title">Your Current Location</div>
+            <div class="location-value" id="location-info">Detecting GPS location...</div>
+            <div id="map"></div>
+        </div>
+
+        <!-- Flood Prediction Card -->
+        <div class="card">
+            <div class="metric-label">Predicted River Discharge</div>
+            <div class="metric-value" id="discharge-val">--</div>
+            <div id="status-badge" class="status-badge">Analyzing basin data...</div>
+            
+            <div class="legend-container">
+                <div class="legend-box legend-safe">SAFE<br>&lt; 50 m³/s</div>
+                <div class="legend-box legend-warning">CAUTION<br>50-199</div>
+                <div class="legend-box legend-danger">HIGH RISK<br>&ge; 200</div>
+            </div>
+
+            <div class="footer-time" id="update-time"></div>
+        </div>
+
+        <!-- SOS Emergency Card -->
+        <div class="card sos-card">
+            <div class="metric-label">Emergency Assistance</div>
+            <a href="tel:112" class="sos-btn" onclick="return confirm('Are you sure you want to call emergency services (112)?');">🚨 SOS - CALL 112</a>
+        </div>
+
+        <!-- Emergency Supply Card -->
+<div class="card supply-card">
+    <div class="metric-label">Relief & Resources</div>
+    <a href="#" class="supply-btn">📦 Request Emergency Supplies</a>
+</div>
+    </main>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let marker;
+
+        function toggleMenu() {
+            const drawer = document.getElementById('drawer');
+            const overlay = document.getElementById('overlay');
+            drawer.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        function requestNotificationPermission() {
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+        }
+
+        function initMap(lat, lon) {
+            if (!map) {
+                map = L.map('map').setView([lat, lon], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+                marker = L.marker([lat, lon]).addTo(map)
+                    .bindPopup('<b>You are here</b>').openPopup();
+            } else {
+                map.setView([lat, lon], 13);
+                marker.setLatLng([lat, lon]);
+            }
+        }
+
+        function initApp() {
+            requestNotificationPermission();
+            const locationInfo = document.getElementById('location-info');
+            const fallbackLat = 28.61;
+            const fallbackLon = 77.20;
+
+            if (!navigator.geolocation) {
+                locationInfo.innerText = "Geolocation not supported";
+                initMap(fallbackLat, fallbackLon);
+                fetchFloodData(fallbackLat, fallbackLon);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    locationInfo.innerText = `Lat: ${lat.toFixed(2)}°, Lon: ${lon.toFixed(2)}°`;
+                    initMap(lat, lon);
+                    fetchFloodData(lat, lon);
+                },
+                (error) => {
+                    console.warn(`Geolocation error: ${error.message}`);
+                    locationInfo.innerText = "Location access denied. Using fallback area.";
+                    initMap(fallbackLat, fallbackLon);
+                    fetchFloodData(fallbackLat, fallbackLon);
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        }
+
+        async function fetchFloodData(lat, lon) {
+            const apiUrl = `https://flood-api.open-meteo.com/v1/flood?latitude=${lat}&longitude=${lon}&daily=river_discharge&forecast_days=1`;
+            const badge = document.getElementById('status-badge');
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error('Network response error');
+                
+                const data = await response.json();
+                const rawDischarge = data.daily?.river_discharge?.[0];
+                const dischargeValue = (rawDischarge !== undefined && rawDischarge !== null) ? rawDischarge : 0;
+                const unit = data.daily_units?.river_discharge || 'm³/s';
+                const forecastDate = data.daily?.time?.[0] || 'Today';
+
+                document.getElementById('discharge-val').innerText = `${dischargeValue} ${unit}`;
+                document.getElementById('update-time').innerText = `Forecast Date: ${forecastDate}`;
+
+                localStorage.setItem('cachedDischarge', dischargeValue);
+                localStorage.setItem('cachedUnit', unit);
+                localStorage.setItem('cachedDate', forecastDate);
+
+                updateBadgeStyle(dischargeValue, badge);
+
+            } catch (error) {
+                console.error('Error fetching forecast:', error);
+                
+                const oldVal = localStorage.getItem('cachedDischarge');
+                const oldUnit = localStorage.getItem('cachedUnit');
+                const oldDate = localStorage.getItem('cachedDate');
+
+                if (oldVal !== null) {
+                    document.getElementById('discharge-val').innerText = `${oldVal} ${oldUnit}`;
+                    document.getElementById('update-time').innerText = `Cached Date: ${oldDate || 'Unknown'}`;
+                    badge.innerText = "OFFLINE MODE (Cached Data)";
+                    badge.style.backgroundColor = "var(--warning)";
+                } else {
+                    document.getElementById('discharge-val').innerText = "Unavailable";
+                    badge.innerText = "Failed to Fetch (No Connection)";
+                    badge.style.backgroundColor = "#94a3b8";
+                }
+            }
+        }
+
+        function updateBadgeStyle(val, badge) {
+            if (val < 50) {
+                badge.innerText = "Status: Normal / Safe";
+                badge.style.backgroundColor = "var(--safe)";
+            } else if (val >= 50 && val < 200) {
+                badge.innerText = "Status: Elevated Flow (Caution)";
+                badge.style.backgroundColor = "var(--warning)";
+            } else {
+                badge.innerText = "ALERT: High Risk Flood Warning!";
+                badge.style.backgroundColor = "var(--danger)";
+                triggerFloodNotification(val);
+            }
+        }
+
+        function triggerFloodNotification(dischargeValue) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                const lastAlert = sessionStorage.getItem('floodAlertSent');
+                if (!lastAlert) {
+                    new Notification("🚨 VEER RAKSHAK Emergency Flood Alert!", {
+                        body: `आपातकाल: भीषण बाढ़ की चेतावनी! आपके क्षेत्र में पानी का स्तर ${dischargeValue} m³/s तेजी से बढ़ रहा है। तुरंत किसी ऊंचे स्थान या नजदीकी राहत शिविर की ओर प्रस्थान करें।`,
+                        icon: "icon.png"
+                    });
+                    sessionStorage.setItem('floodAlertSent', 'true');
+                }
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .catch((err) => console.log('Service worker registration failed:', err));
+            });
+        }
+
+        function requestSupplies() {
+    const locationText = document.getElementById('location-info').innerText;
+    alert(`Emergency supply request initiated for location: ${locationText}. Connecting to nearest relief camp...`);
+    // You can redirect to a form page here, e.g., window.location.href = `supplies.html?loc=${encodeURIComponent(locationText)}`;
+}
+
+        initApp();
+    </script>
+</body>
+</html>
